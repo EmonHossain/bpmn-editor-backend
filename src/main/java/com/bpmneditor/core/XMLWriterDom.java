@@ -17,39 +17,28 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 @Component
 public class XMLWriterDom implements XMLConstants {
-
-	private Resource resource;
-
-	private Element edgeElement;
-	private TransformerFactory transformerFactory;
-	private Transformer transformer;
-	private DOMSource domSource;
-	private StreamResult streamResult;
+	
+	private Document doc;
 
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
 	public XMLWriterDom prepareXml(String xml, List<XMLProperties> listOfProperties) {
-		Document doc = this.normalizeXML(xml);
-
+		this.normalizeXML(xml);
 		for (XMLProperties p : listOfProperties) {
-
+			this.buildNode(p);
 		}
-
 		return this;
 	}
 
-	private Document normalizeXML(String xml) {
-		Document doc = null;
+	private void normalizeXML(String xml) {
+		
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -58,13 +47,12 @@ public class XMLWriterDom implements XMLConstants {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return doc;
 	}
 
-	private void buildNode(Document doc, XMLProperties xmlProperties) {
+	private void buildNode(XMLProperties xmlProperties) {
 		Element elem = doc.getElementById(xmlProperties.getId());
 
-		Map<String, String> map = this.extractValues(xmlProperties.getData(), ",");
+		Map<String, String> map = extractValues(xmlProperties.getData(), ",");
 
 		switch (elem.getTagName()) {
 		case ELEMENT_TASK_USER:
@@ -97,19 +85,13 @@ public class XMLWriterDom implements XMLConstants {
 		return m;
 	}
 
-	private void writeXmlDocument(Document doc) throws SAXException, IOException {
+	public void writeToXmlDocument(String destination) throws SAXException, IOException {
 		try {
-			this.transformerFactory = TransformerFactory.newInstance();
-			this.transformer = this.transformerFactory.newTransformer();
-			this.domSource = new DOMSource(doc);
-			// resource = new
-			// ClassPathResource("/tempProcess/Temp_loanProcess.xml");
-			LOG.debug("URI " + resource.getURI());
-			LOG.debug("URL " + resource.getURL());
-			this.streamResult = new StreamResult(new File(resource.getURI()));
-			StreamResult result = new StreamResult(System.out);
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource domSource = new DOMSource(doc);
+			StreamResult streamResult = new StreamResult(new File(destination));
 			transformer.transform(domSource, streamResult);
-			transformer.transform(domSource, result);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
