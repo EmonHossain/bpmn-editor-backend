@@ -29,12 +29,12 @@ public class XMLWriterDom implements XMLConstants {
 
 	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
-	public XMLWriterDom prepareXml(String xml, List<XMLProperties> listOfProperties) {
+	public void prepareXml(String xml, List<XMLProperties> listOfProperties,String destination) throws IOException, SAXException {
 		this.normalizeXML(xml);
 		for (XMLProperties p : listOfProperties) {
 			this.buildNode(p);
 		}
-		return this;
+		this.writeToXmlDocument(destination);
 	}
 
 	private void normalizeXML(String xml) {
@@ -62,20 +62,24 @@ public class XMLWriterDom implements XMLConstants {
 			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_NAME, "");
 			break;
 		case ELEMENT_GATEWAY_EXCLUSIVE:
+			break;
 		case ELEMENT_GATEWAY_INCLUSIVE:
+			break;
 		case ELEMENT_GATEWAY_PARALLEL:
+			break;
 		case ELEMENT_SEQUENCE_FLOW:
+			//if()
 			Element e = (Element) doc.createElement(ELEMENT_FLOW_CONDITION);
 			e.setAttribute(ATTRIBUTE_TYPE + COLON + ATTRIBUTE_TYPE, "tFormalExpression");
 			e.appendChild(doc.createCDATASection(""));
 			elem.appendChild(e);
-
+			break;
 		default:
 			break;
 		}
 	}
 
-	public static Map<String, String> extractValues(String data, String delim) {
+	private static Map<String, String> extractValues(String data, String delim) {
 		Map<String, String> m = new HashMap<String, String>();
 		StringTokenizer tokenizer = new StringTokenizer(data, delim);
 		while (tokenizer.hasMoreTokens()) {
@@ -85,7 +89,7 @@ public class XMLWriterDom implements XMLConstants {
 		return m;
 	}
 
-	public void writeToXmlDocument(String destination) throws SAXException, IOException {
+	private void writeToXmlDocument(String destination) throws SAXException, IOException {
 		try {
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			Transformer transformer = transformerFactory.newTransformer();
