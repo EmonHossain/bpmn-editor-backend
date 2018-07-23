@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>BPMN Editor</title>
+
+<!-- required modeler styles -->
+<link rel="stylesheet" href="https://unpkg.com/bpmn-js@2.3.0/dist/assets/diagram-js.css"/>
+<link rel="stylesheet" href="https://unpkg.com/bpmn-js@2.3.0/dist/assets/bpmn-font/css/bpmn.css"/>
+<link rel="stylesheet" th:href="@{/app.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/bpmn-custom-css.css}"/>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/>
+
+<!-- required modeler js -->
+<script th:src="@{/jquery.js}"></script>
+<script th:src="@{/development.js}"></script>
+<script th:src="@{/bpmn-properties.js}"></script>
+
+</head>
+<body>
+
+	<div id="canvas"></div>
+
+	<div id="custom-properties" class="custom-properties">
+		<div style="margin-top: -22px;">
+			<p class="custom-properties-title">Properties</p>
+		</div>
+
+		<div>
+			<table>
+				<!-- Dynamic Body-->
+			</table>
+		</div>
+
+	</div>
+
+	<div class="io-import-export">
+
+		<ul class="io-import io-control io-control-list io-horizontal">
+			<li>
+				<button title="open BPMN diagram from local file system"
+					jsaction="click:bio.openLocal">
+					<span><i class="fa fa-folder-open" aria-hidden="true"></i></span>
+				</button>
+			</li>
+			<li class="vr" style="margin-left: 2px"></li>
+			<li>
+				<button id="compile-model" title="Compile Diagram">
+					<span><i class="fa fa-cogs" aria-hidden="true"></i></span>
+				</button>
+			</li>
+		</ul>
+
+
+
+
+		<ul class="io-import io-control io-control-list io-horizontal">
+			<li>
+				<button title="reset zoom" id="reset-canvas">
+					<span><i class="fa fa-compass" aria-hidden="true"></i></span>
+				</button>
+			</li>
+		</ul>
+
+		<ul class="io-import io-control io-control-list io-horizontal">
+			<li>
+				<button title="zoom in" id="zoom-in-canvas">
+					<span><i class="fa fa-search-plus" aria-hidden="true"></i> </span>
+				</button>
+			</li>
+			<li>
+			<li class="vr" style="margin-left: 2px"></li>
+			</li>
+			<li>
+				<button title="zoom out" id="zoom-out-canvas">
+					<span><i class="fa fa-search-minus" aria-hidden="true"></i>
+					</span>
+				</button>
+			</li>
+		</ul>
+
+	</div>
+</body>
+</html>

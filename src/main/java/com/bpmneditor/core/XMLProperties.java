@@ -39,4 +39,9 @@ public class XMLProperties {
 		this.data = data;
 	}
 
+	@Override
+	public String toString() {
+		return "XMLProperties [id=" + id + ", type=" + type + ", data=" + data + "]";
+	}
+
 }
