@@ -15592,6 +15592,9 @@ var objArray = [];
   						'<tr><td><p>assignee</p></td>'+
   						'<td class="align-right"><input type="text" name="assignee"></td>'+
   					'</tr>'+
+  					'<tr><td><p>cand. Users</p></td>'+
+  						'<td class="align-right"><input type="text" name="candidateUsers"></td>'+
+  					'</tr>'+
   					'<tr><td></td><td class="align-right" ><button id="store" >Commit</button></td></tr></tbody>';
 				break;
 
@@ -15707,7 +15710,7 @@ var objArray = [];
     				'<tbody>'+
 	    				'<tr><td><p><b>General:</b></p></td></tr>'+
 	    				'<tr><td><p>id</p></td>'+
-  						'<td class="align-right"><input type="text" name="Id" value="'+id+'"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="id" value="'+id+'"></td></tr>'+
   						'<tr><td><p>Name</p></td>'+
   						'<td class="align-right"><input type="text" name="tagName" value="'+name+'"></td></tr>'+
   						'<tr><td><p><b>Condition:</b></p></td></tr>'+
@@ -15980,9 +15983,9 @@ var objArray = [];
 			 __elementId = element.id;
 			 __elementType = element.type;
 			 __elementName = element.businessObject.name;
-			 console.log(__elementId+" "+__elementType);
+			 console.log("elementId : "+__elementId+" "+__elementType);
 			 createTable(__elementId,__elementType,__elementName);
-			 getRecentValues(__elementId,__elementType,__elementName);
+			 getRecentValues(__elementId,__elementType);
 	    }else{
 	    	removeTable();
 	    }

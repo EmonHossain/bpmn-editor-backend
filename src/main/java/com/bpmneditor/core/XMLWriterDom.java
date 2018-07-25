@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -13,13 +14,16 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 @Component
@@ -27,9 +31,10 @@ public class XMLWriterDom implements XMLConstants {
 	
 	private Document doc;
 
-	private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+	//private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
-	public void prepareXml(String xml, List<XMLProperties> listOfProperties,String destination) throws IOException, SAXException {
+	public void prepareXml(String xml, List<XMLProperties> listOfProperties,String destination) throws IOException, SAXException, XPathExpressionException {
+		System.out.println(xml);
 		this.normalizeXML(xml);
 		for (XMLProperties p : listOfProperties) {
 			this.buildNode(p);
@@ -49,17 +54,33 @@ public class XMLWriterDom implements XMLConstants {
 		}
 	}
 
-	private void buildNode(XMLProperties xmlProperties) {
-		Element elem = doc.getElementById(xmlProperties.getId());
-
+	private void buildNode(XMLProperties xmlProperties) throws XPathExpressionException {
+		XPath xPath = XPathFactory.newInstance().newXPath();
+		char c[] = xmlProperties.getType().toCharArray();
+		c[0] += 32;
+		xmlProperties.setType(new String(c));
+		String expression = "//"+xmlProperties.getType()+"[@id=" + "'" + xmlProperties.getId() + "'" + "]";
+		Element elem = (Element) xPath.compile(expression).evaluate(doc, XPathConstants.NODE);
 		Map<String, String> map = extractValues(xmlProperties.getData(), ",");
-
+		
 		switch (elem.getTagName()) {
 		case ELEMENT_TASK_USER:
-			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_ASSIGNEE,
-					xmlProperties.getData());
-			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CATEGORY, "");
-			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_NAME, "");
+			String assignee = null;
+			String category = null;
+			String candidates = null;
+			for(Entry<String, String> e : map.entrySet()){
+				if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_ASSIGNEE))
+					assignee = e.getValue();
+				else if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CATEGORY))
+					category = e.getValue();
+				else if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CANDIDATEUSERS))
+					candidates = e.getValue();
+			}
+			if(!assignee.equals("null"))
+				elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_ASSIGNEE,assignee);
+			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CATEGORY, category);
+			if(!candidates.equals("null"))
+				elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CANDIDATEUSERS, candidates);
 			break;
 		case ELEMENT_GATEWAY_EXCLUSIVE:
 			break;
@@ -68,11 +89,27 @@ public class XMLWriterDom implements XMLConstants {
 		case ELEMENT_GATEWAY_PARALLEL:
 			break;
 		case ELEMENT_SEQUENCE_FLOW:
-			//if()
-			Element e = (Element) doc.createElement(ELEMENT_FLOW_CONDITION);
-			e.setAttribute(ATTRIBUTE_TYPE + COLON + ATTRIBUTE_TYPE, "tFormalExpression");
-			e.appendChild(doc.createCDATASection(""));
-			elem.appendChild(e);
+			String data = null;
+			for(Entry<String, String> e : map.entrySet()){
+				if(e.getKey().equalsIgnoreCase(FLOW_CONDITION))
+						data = e.getValue();
+			}
+			
+			if(!data.equals("null")){
+				Element e = (Element) doc.createElement(ELEMENT_FLOW_CONDITION);
+				e.setAttribute(XSI_PREFIX + COLON + ATTRIBUTE_TYPE, "tFormalExpression");
+				e.appendChild(doc.createCDATASection(data));
+				Element oldChild = (Element) elem.getFirstChild();
+				if(oldChild!=null)
+					elem.replaceChild(e, oldChild);
+				else
+					elem.appendChild(e);
+			}else{
+				Element oldChild = (Element) elem.getFirstChild();
+				if(oldChild!=null)
+					elem.removeChild(oldChild);
+			}
+			
 			break;
 		default:
 			break;

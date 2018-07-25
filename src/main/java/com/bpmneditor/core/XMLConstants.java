@@ -180,6 +180,7 @@ public interface XMLConstants {
 	public static final String ATTRIBUTE_IOPARAMETER_TARGET = "target";
 
 	public static final String ELEMENT_SEQUENCE_FLOW = "sequenceFlow";
+	public static final String FLOW_CONDITION = "condition";
 	public static final String ELEMENT_FLOW_CONDITION = "conditionExpression";
 	public static final String ATTRIBUTE_FLOW_SOURCE_REF = "sourceRef";
 	public static final String ATTRIBUTE_FLOW_TARGET_REF = "targetRef";
