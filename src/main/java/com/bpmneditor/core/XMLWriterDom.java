@@ -28,12 +28,13 @@ import org.xml.sax.SAXException;
 
 @Component
 public class XMLWriterDom implements XMLConstants {
-	
+
 	private Document doc;
 
-	//private final Logger LOG = LoggerFactory.getLogger(this.getClass());
+	// private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
-	public void prepareXml(String xml, List<XMLProperties> listOfProperties,String destination) throws IOException, SAXException, XPathExpressionException {
+	public void prepareXml(String xml, List<XMLProperties> listOfProperties, String destination)
+			throws IOException, SAXException, XPathExpressionException {
 		System.out.println(xml);
 		this.normalizeXML(xml);
 		for (XMLProperties p : listOfProperties) {
@@ -43,7 +44,7 @@ public class XMLWriterDom implements XMLConstants {
 	}
 
 	private void normalizeXML(String xml) {
-		
+
 		try {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -55,64 +56,176 @@ public class XMLWriterDom implements XMLConstants {
 	}
 
 	private void buildNode(XMLProperties xmlProperties) throws XPathExpressionException {
+
+		Element elem = getDomElementById(xmlProperties);
+		Map<String, String> map = extractValues(xmlProperties.getData(), ",");
+
+		switch (elem.getTagName()) {
+		case ELEMENT_TASK_USER:
+			this.buildElementUserTask(xmlProperties, elem, map); // done
+			break;
+		case ELEMENT_GATEWAY_EXCLUSIVE:
+			this.buildElementExclusiveGateway(xmlProperties, elem, map);
+			break;
+		case ELEMENT_GATEWAY_INCLUSIVE:
+			this.buildElementInclusiveGateway(xmlProperties, elem, map);
+			break;
+		case ELEMENT_GATEWAY_PARALLEL:
+			this.buildElementParallesGateway(xmlProperties, elem, map);
+			break;
+		case ELEMENT_SUBPROCESS:
+			this.buildElementSubprocess(xmlProperties, elem, map);
+			break;
+		case ELEMENT_SEQUENCE_FLOW:
+			this.buildElementSequenceFlow(xmlProperties, elem, map); // done
+			break;
+		case ELEMENT_EVENT_END:
+			this.buildElementEndEvent(xmlProperties, elem, map); //done
+			break;
+		default:
+			break;
+		}
+	}
+
+	
+
+	private void buildElementSubprocess(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		
+		String sequantial = null;
+		String collection = null;
+		String elementVariable = null;
+		
+		Element em = (Element) doc.createElement(ELEMENT_MULTIINSTANCE);
+				
+		for (Entry<String, String> e : map.entrySet()) {
+			
+			switch (e.getKey()) {
+			case ATTRIBUTE_MULTIINSTANCE_SEQUENTIAL:
+				sequantial = e.getValue();
+				break;
+			case ATTRIBUTE_MULTIINSTANCE_COLLECTION:
+				collection = e.getValue();
+				break;
+			case ATTRIBUTE_MULTIINSTANCE_VARIABLE:
+				elementVariable = e.getValue();
+				break;
+			case ELEMENT_MULTIINSTANCE_CARDINALITY:
+				Element lc = (Element) doc.createElement(ELEMENT_MULTIINSTANCE_CARDINALITY);
+				lc.setTextContent(e.getValue());
+				em.appendChild(lc);
+				break;
+			case ELEMENT_MULTIINSTANCE_CONDITION:
+				Element cc = (Element) doc.createElement(ELEMENT_MULTIINSTANCE_CONDITION);
+				cc.setTextContent(e.getValue());
+				em.appendChild(cc);
+				break;
+			default:
+				break;
+			}
+		}
+		
+		em.setAttribute(ATTRIBUTE_MULTIINSTANCE_SEQUENTIAL, sequantial);
+		em.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_MULTIINSTANCE_COLLECTION, collection);
+		em.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_MULTIINSTANCE_VARIABLE, elementVariable);
+		
+		elem.appendChild(em);
+		
+	}
+
+	private void buildElementEndEvent(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		String data = null;
+		for (Entry<String, String> e : map.entrySet()) {
+			if (e.getKey().equalsIgnoreCase(ATTRIBUTE_ERROR_CODE))
+				data = e.getValue();
+		}
+		
+		if(data!=null){
+			Element e = (Element)doc.createElement(ELEMENT_EVENT_ERRORDEFINITION);
+			e.setAttribute(ATTRIBUTE_ERROR_REF, data);
+			elem.appendChild(e);
+		}
+		
+		
+	}
+
+	private void buildElementInclusiveGateway(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void buildElementExclusiveGateway(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		String data = null;
+		for (Entry<String, String> e : map.entrySet()) {
+			if (e.getKey().equalsIgnoreCase(ATTRIBUTE_DEFAULT))
+				data = e.getValue();
+		}
+		
+		if(data!=null){
+			elem.setAttribute(ATTRIBUTE_DEFAULT, data);
+		}
+	}
+
+	private void buildElementParallesGateway(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void buildElementUserTask(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+		String assignee = null;
+		String category = null;
+		String candidates = null;
+
+		for (Entry<String, String> e : map.entrySet()) {
+			if (e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_ASSIGNEE))
+				assignee = e.getValue();
+			else if (e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CATEGORY))
+				category = e.getValue();
+			else if (e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CANDIDATEUSERS))
+				candidates = e.getValue();
+		}
+		if (!assignee.equals("null"))
+			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_ASSIGNEE, assignee);
+		elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CATEGORY, category);
+		if (!candidates.equals("null"))
+			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CANDIDATEUSERS, candidates);
+	}
+
+	private Element getDomElementById(XMLProperties xmlProperties) {
 		XPath xPath = XPathFactory.newInstance().newXPath();
 		char c[] = xmlProperties.getType().toCharArray();
 		c[0] += 32;
 		xmlProperties.setType(new String(c));
-		String expression = "//"+xmlProperties.getType()+"[@id=" + "'" + xmlProperties.getId() + "'" + "]";
-		Element elem = (Element) xPath.compile(expression).evaluate(doc, XPathConstants.NODE);
-		Map<String, String> map = extractValues(xmlProperties.getData(), ",");
-		
-		switch (elem.getTagName()) {
-		case ELEMENT_TASK_USER:
-			String assignee = null;
-			String category = null;
-			String candidates = null;
-			for(Entry<String, String> e : map.entrySet()){
-				if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_ASSIGNEE))
-					assignee = e.getValue();
-				else if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CATEGORY))
-					category = e.getValue();
-				else if(e.getKey().equalsIgnoreCase(ATTRIBUTE_TASK_USER_CANDIDATEUSERS))
-					candidates = e.getValue();
-			}
-			if(!assignee.equals("null"))
-				elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_ASSIGNEE,assignee);
-			elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CATEGORY, category);
-			if(!candidates.equals("null"))
-				elem.setAttribute(ACTIVITI_EXTENSIONS_PREFIX + COLON + ATTRIBUTE_TASK_USER_CANDIDATEUSERS, candidates);
-			break;
-		case ELEMENT_GATEWAY_EXCLUSIVE:
-			break;
-		case ELEMENT_GATEWAY_INCLUSIVE:
-			break;
-		case ELEMENT_GATEWAY_PARALLEL:
-			break;
-		case ELEMENT_SEQUENCE_FLOW:
-			String data = null;
-			for(Entry<String, String> e : map.entrySet()){
-				if(e.getKey().equalsIgnoreCase(FLOW_CONDITION))
-						data = e.getValue();
-			}
-			
-			if(!data.equals("null")){
-				Element e = (Element) doc.createElement(ELEMENT_FLOW_CONDITION);
-				e.setAttribute(XSI_PREFIX + COLON + ATTRIBUTE_TYPE, "tFormalExpression");
-				e.appendChild(doc.createCDATASection(data));
-				Element oldChild = (Element) elem.getFirstChild();
-				if(oldChild!=null)
-					elem.replaceChild(e, oldChild);
-				else
-					elem.appendChild(e);
-			}else{
-				Element oldChild = (Element) elem.getFirstChild();
-				if(oldChild!=null)
-					elem.removeChild(oldChild);
-			}
-			
-			break;
-		default:
-			break;
+		String expression = "//" + xmlProperties.getType() + "[@id=" + "'" + xmlProperties.getId() + "'" + "]";
+		try {
+			return (Element) xPath.compile(expression).evaluate(doc, XPathConstants.NODE);
+		} catch (XPathExpressionException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private void buildElementSequenceFlow(XMLProperties xmlProperties, Element elem, Map<String, String> map) {
+
+		String data = null;
+		for (Entry<String, String> e : map.entrySet()) {
+			if (e.getKey().equalsIgnoreCase(FLOW_CONDITION))
+				data = e.getValue();
+		}
+
+		if (!data.equals("null")) {
+			Element e = (Element) doc.createElement(ELEMENT_FLOW_CONDITION);
+			e.setAttribute(XSI_PREFIX + COLON + ATTRIBUTE_TYPE, "tFormalExpression");
+			e.appendChild(doc.createCDATASection(data));
+			Element oldChild = (Element) elem.getFirstChild();
+			if (oldChild != null)
+				elem.replaceChild(e, oldChild);
+			else
+				elem.appendChild(e);
+		} else {
+			Element oldChild = (Element) elem.getFirstChild();
+			if (oldChild != null)
+				elem.removeChild(oldChild);
 		}
 	}
 

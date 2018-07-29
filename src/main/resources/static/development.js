@@ -15648,11 +15648,11 @@ var objArray = [];
 				content = '<caption>'+type+'</caption>'+
     				'<tbody><tr><td><p><b>General:</b></p></td></tr><tr>'+
   						'<td><p>id</p></td>'+
-  						'<td class="align-right"><input type="text" name="Id" value="'+id+'"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="id" value="'+id+'"></td></tr>'+
   						'<tr><td><p>Name</p></td>'+
   						'<td class="align-right"><input type="text" name="tagName" value="'+name+'"></td></tr>'+
   						'<tr><td><p>Default Flow</p></td>'+
-  						'<td class="align-right"><input type="text" name="defaultFlow"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="default"></td></tr>'+
   					'</tr>'+
   					'<tr><td></td><td class="align-right" ><button id="store" >Commit</button></td></tr></tbody>';
   				break;
@@ -15687,20 +15687,20 @@ var objArray = [];
     				'<tbody>'+
     					'<tr><td><p><b>General:</b></p></td></tr>'+
     					'<tr><td><p>id</p></td>'+
-  						'<td class="align-right"><input type="text" name="Id" value="'+id+'"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="id" value="'+id+'"></td></tr>'+
   						'<tr><td><p>Name</p></td>'+
   						'<td class="align-right"><input type="text" name="tagName" value="'+name+'"></td></tr>'+
   						'<tr><td><p><b>Multi Instance:</b></p></td></tr>'+
   						'<tr><td><p>Sequential</p></td>'+
-  						'<td class="align-right" ><select><option value="1">true</option><option value="0">false</option></select></td></tr>'+
+  						'<td class="align-right" ><input type="text" name="isSequential"/></td></tr>'+
   						'<tr><td><p>L. Cardinality</p></td>'+
-  						'<td class="align-right"><input type="text" name="tagName"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="loopCardinality"/></td></tr>'+
   						'<tr><td><p>Collection</p></td>'+
-  						'<td class="align-right"><input type="text" name="tagName"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="collection"/></td></tr>'+
   						'<tr><td><p>E. Variable</p></td>'+
-  						'<td class="align-right"><input type="text" name="tagName"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="elementVariable"/></td></tr>'+
   						'<tr><td><p>C. Condition</p></td>'+
-  						'<td class="align-right"><input type="text" name="tagName"></td></tr>'+
+  						'<td class="align-right"><input type="text" name="completionCondition"/></td></tr>'+
   					'</tr>'+
   					'<tr><td></td><td class="align-right" ><button id="store" >Commit</button></td></tr></tbody>';
   				break;
@@ -15745,6 +15745,7 @@ var objArray = [];
 		console.log('working');
 		var id,type,data='';
 		table.find('tr').each(function(index, el) {
+
 			var input = $(this).find('td').last().find('input');
 			var name = input.attr('name');
 			var value = input.val();
